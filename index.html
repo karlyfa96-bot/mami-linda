@@ -21,6 +21,13 @@
       --rojo: #b85555;
       --rojo-claro: #fae7e7;
       --borde: #e5dfd8;
+      --calendario: #7887c9;
+      --calendario-borde: #5c6fb9;
+      --linea: #dedede;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
@@ -28,6 +35,12 @@
       background: var(--fondo);
       color: var(--texto);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input,
+    textarea {
+      font-family: inherit;
     }
 
     .contenedor {
@@ -68,6 +81,11 @@
       display: flex;
       gap: 8px;
       overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .dias::-webkit-scrollbar {
+      display: none;
     }
 
     .dia {
@@ -102,6 +120,18 @@
     h2 {
       font-size: 19px;
       margin: 0 0 13px;
+    }
+
+    .boton-calendario {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      background: #363d48;
+      color: white;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 750;
+      cursor: pointer;
     }
 
     .cabecera-cobertura {
@@ -149,8 +179,11 @@
     }
 
     .franja-faltante {
-      margin-top: 6px;
-      font-weight: 600;
+      margin-top: 8px;
+      font-weight: 650;
+      background: rgba(255,255,255,.45);
+      border-radius: 9px;
+      padding: 7px 9px;
     }
 
     .completo {
@@ -268,133 +301,501 @@
       color: white;
       padding: 12px 18px;
       border-radius: 30px;
-      z-index: 999;
+      z-index: 9999;
       white-space: nowrap;
+      max-width: calc(100vw - 30px);
+    }
+
+    /* ===========================
+       VISTA CALENDARIO
+       =========================== */
+
+    #vistaCalendario {
+      display: none;
+      min-height: 100vh;
+      background: #202327;
+      color: white;
+    }
+
+    .calendar-top {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #202327;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid #3a3d42;
+    }
+
+    .calendar-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .volver {
+      border: none;
+      background: #34383e;
+      color: white;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .calendar-title {
+      text-align: center;
+      flex: 1;
+    }
+
+    .calendar-title strong {
+      display: block;
+      font-size: 18px;
+    }
+
+    .calendar-title span {
+      display: block;
+      font-size: 12px;
+      color: #aaaeb5;
+      margin-top: 2px;
+    }
+
+    .week-nav {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .week-nav button {
+      flex: 1;
+      border: 1px solid #4c5056;
+      background: #2b2f34;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: 650;
+    }
+
+    .calendar-instructions {
+      margin: 12px 14px 0;
+      padding: 11px 13px;
+      border-radius: 12px;
+      background: #2b2f34;
+      color: #d5d7db;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .calendar-instructions strong {
+      color: white;
+    }
+
+    .calendar-scroll {
+      overflow-x: auto;
+      overflow-y: visible;
+      margin-top: 12px;
+      padding-bottom: 30px;
+    }
+
+    .calendar-inner {
+      width: 755px;
+      min-width: 755px;
+      padding-left: 5px;
+    }
+
+    .calendar-days-header {
+      display: grid;
+      grid-template-columns: 55px repeat(7, 100px);
+      position: sticky;
+      top: 96px;
+      z-index: 40;
+      background: #202327;
+      border-bottom: 1px solid #44484d;
+    }
+
+    .calendar-days-header .corner {
+      height: 65px;
+    }
+
+    .day-head {
+      height: 65px;
+      text-align: center;
+      border-left: 1px solid #3c4045;
+      padding-top: 8px;
+    }
+
+    .day-head .letra {
+      font-size: 12px;
+      color: #a7abb1;
+      text-transform: uppercase;
+    }
+
+    .day-head .numero {
+      margin-top: 4px;
+      font-size: 21px;
+      font-weight: 500;
+    }
+
+    .day-head.hoy .numero {
+      display: inline-flex;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      background: var(--verde);
+    }
+
+    .calendar-body {
+      display: grid;
+      grid-template-columns: 55px repeat(7, 100px);
+      height: 1440px;
+      position: relative;
+    }
+
+    .time-column {
+      position: relative;
+      height: 1440px;
+      background: #202327;
+    }
+
+    .time-label {
+      position: absolute;
+      right: 8px;
+      transform: translateY(-50%);
+      font-size: 11px;
+      color: #9da1a7;
+    }
+
+    .day-column {
+      position: relative;
+      height: 1440px;
+      border-left: 1px solid #41454a;
+      cursor: pointer;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 59px,
+          #41454a 59px,
+          #41454a 60px
+        );
+    }
+
+    .day-column:hover {
+      background-color: rgba(255,255,255,.015);
+    }
+
+    .event-block {
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      background: var(--calendario);
+      border: 1px solid var(--calendario-borde);
+      border-radius: 7px;
+      color: #16191d;
+      padding: 5px;
+      font-size: 11px;
+      line-height: 1.2;
+      overflow: hidden;
+      z-index: 15;
+      pointer-events: auto;
+    }
+
+    .event-block strong {
+      display: block;
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    .event-block .evento-hora {
+      font-size: 10px;
+      opacity: .85;
+    }
+
+    .gap-highlight {
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      border: 1px dashed rgba(255,255,255,.22);
+      border-radius: 6px;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .calendar-help-bottom {
+      padding: 0 14px 30px;
+      color: #aaaeb5;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    @media(max-width: 400px) {
+      h1 {
+        font-size: 25px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<div class="contenedor">
+<!-- ===========================================
+     PANTALLA PRINCIPAL
+     =========================================== -->
 
-  <header>
-    <div class="corazon">❤️</div>
-    <h1>Mami Linda</h1>
-    <p>Organicemos su acompañamiento las 24 horas</p>
-  </header>
+<div id="vistaPrincipal">
 
+  <div class="contenedor">
 
-  <div class="tarjeta">
-    <div class="dias" id="dias"></div>
-  </div>
-
-
-  <div class="tarjeta">
-
-    <div class="cabecera-cobertura">
-
-      <div>
-        <h2>Cobertura del día</h2>
-        <div id="fechaSeleccionada"></div>
-      </div>
-
-      <div id="porcentaje">0%</div>
-
-    </div>
-
-    <div class="barra">
-      <div id="barraInterior"></div>
-    </div>
-
-    <div id="textoCobertura">
-      Calculando...
-    </div>
-
-    <div id="detalleCobertura"></div>
-
-  </div>
+    <header>
+      <div class="corazon">❤️</div>
+      <h1>Mami Linda</h1>
+      <p>Organicemos su acompañamiento las 24 horas</p>
+    </header>
 
 
-  <div class="tarjeta">
-
-    <h2>👥 Turnos confirmados</h2>
-
-    <div id="listaTurnos">
-      <div class="vacio">Cargando...</div>
-    </div>
-
-  </div>
-
-
-  <div class="tarjeta">
-
-    <h2>➕ Me apunto</h2>
-
-    <form id="formulario">
-
-      <label>Tu nombre</label>
-
-      <input
-        id="nombre"
-        type="text"
-        placeholder="Ej. Karla"
-        required
+    <div class="tarjeta">
+      <button
+        class="boton-calendario"
+        id="abrirCalendario"
       >
+        📅 Ver calendario semanal
+      </button>
+    </div>
 
 
-      <div class="horas">
+    <div class="tarjeta">
+      <div class="dias" id="dias"></div>
+    </div>
+
+
+    <div class="tarjeta">
+
+      <div class="cabecera-cobertura">
 
         <div>
-          <label>Desde</label>
-
-          <input
-            id="inicio"
-            type="time"
-            required
-          >
+          <h2>Cobertura del día</h2>
+          <div id="fechaSeleccionada"></div>
         </div>
 
-
-        <div>
-          <label>Hasta</label>
-
-          <input
-            id="fin"
-            type="time"
-            required
-          >
-        </div>
+        <div id="porcentaje">0%</div>
 
       </div>
 
+      <div class="barra">
+        <div id="barraInterior"></div>
+      </div>
 
-      <label>Nota opcional</label>
+      <div id="textoCobertura">
+        Calculando...
+      </div>
 
-      <textarea
-        id="nota"
-        rows="2"
-        placeholder="Ej. Llego después del trabajo"
-      ></textarea>
+      <div id="detalleCobertura"></div>
+
+    </div>
 
 
-      <button class="boton" type="submit">
-        Confirmar mi turno
+    <div class="tarjeta">
+
+      <h2>👥 Turnos confirmados</h2>
+
+      <div id="listaTurnos">
+        <div class="vacio">Cargando...</div>
+      </div>
+
+    </div>
+
+
+    <div
+      class="tarjeta"
+      id="seccionMeApunto"
+    >
+
+      <h2>➕ Me apunto</h2>
+
+      <form id="formulario">
+
+        <label>Tu nombre</label>
+
+        <input
+          id="nombre"
+          type="text"
+          placeholder="Ej. Karla"
+          required
+        >
+
+
+        <div class="horas">
+
+          <div>
+            <label>Desde</label>
+
+            <input
+              id="inicio"
+              type="time"
+              required
+            >
+          </div>
+
+
+          <div>
+            <label>Hasta</label>
+
+            <input
+              id="fin"
+              type="time"
+              required
+            >
+          </div>
+
+        </div>
+
+
+        <label>Nota opcional</label>
+
+        <textarea
+          id="nota"
+          rows="2"
+          placeholder="Ej. Llego después del trabajo"
+        ></textarea>
+
+
+        <button class="boton" type="submit">
+          Confirmar mi turno
+        </button>
+
+      </form>
+
+      <div class="ayuda">
+        Si el turno pasa de medianoche, por ejemplo
+        <strong>10:00 p. m. → 6:00 a. m.</strong>,
+        la aplicación lo calcula automáticamente.
+      </div>
+
+    </div>
+
+
+    <div id="estado">
+      Conectando con el calendario...
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ===========================================
+     VISTA CALENDARIO
+     =========================================== -->
+
+<div id="vistaCalendario">
+
+  <div class="calendar-top">
+
+    <div class="calendar-top-row">
+
+      <button
+        class="volver"
+        id="volverPrincipal"
+      >
+        ← Volver
       </button>
 
-    </form>
+      <div class="calendar-title">
+        <strong>Calendario de acompañamiento</strong>
+        <span id="tituloSemana"></span>
+      </div>
 
-    <div class="ayuda">
-      Si el turno pasa de medianoche, por ejemplo
-      <strong>10:00 p. m. → 6:00 a. m.</strong>,
-      la aplicación lo calcula automáticamente.
+    </div>
+
+    <div class="week-nav">
+
+      <button id="semanaAnterior">
+        ‹ Semana anterior
+      </button>
+
+      <button id="semanaActual">
+        Hoy
+      </button>
+
+      <button id="semanaSiguiente">
+        Semana siguiente ›
+      </button>
+
     </div>
 
   </div>
 
 
-  <div id="estado">
-    Conectando con el calendario...
+  <div class="calendar-instructions">
+    💡 <strong>Tocá cualquier espacio libre</strong>
+    del calendario. La aplicación volverá automáticamente
+    a “Me apunto” con ese día y horario seleccionados.
+  </div>
+
+
+  <div class="calendar-scroll" id="calendarScroll">
+
+    <div class="calendar-inner">
+
+      <div
+        class="calendar-days-header"
+        id="calendarHeader"
+      ></div>
+
+      <div class="calendar-body">
+
+        <div
+          class="time-column"
+          id="timeColumn"
+        ></div>
+
+        <div
+          class="day-column"
+          data-day="0"
+        ></div>
+
+        <div
+          class="day-column"
+          data-day="1"
+        ></div>
+
+        <div
+          class="day-column"
+          data-day="2"
+        ></div>
+
+        <div
+          class="day-column"
+          data-day="3"
+        ></div>
+
+        <div
+          class="day-column"
+          data-day="4"
+        ></div>
+
+        <div
+          class="day-column"
+          data-day="5"
+        ></div>
+
+        <div
+          class="day-column"
+          data-day="6"
+        ></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="calendar-help-bottom">
+    Cada línea horizontal representa una hora.
+    Los bloques de color son turnos ya ocupados.
   </div>
 
 </div>
@@ -418,7 +819,9 @@
   from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
 
 
-  /* FIREBASE YA CONFIGURADO */
+  /* ===========================================
+     FIREBASE
+     =========================================== */
 
   const firebaseConfig = {
     apiKey: "AIzaSyChrB7sx9UwPj1R3f-IuTyfmD5GMNC3DaY",
@@ -431,24 +834,59 @@
   };
 
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  const app =
+    initializeApp(firebaseConfig);
 
-  const turnosRef = ref(db, "turnos");
+  const db =
+    getDatabase(app);
 
+  const turnosRef =
+    ref(db, "turnos");
+
+
+  /* ===========================================
+     ESTADO
+     =========================================== */
 
   let turnos = {};
-  let fechaSeleccionada = fechaLocal(new Date());
+
+  let fechaSeleccionada =
+    fechaLocal(new Date());
+
+  let inicioSemanaCalendario =
+    obtenerLunes(new Date());
 
 
-  const dias = document.getElementById("dias");
-  const listaTurnos = document.getElementById("listaTurnos");
-  const formulario = document.getElementById("formulario");
+  /* ===========================================
+     ELEMENTOS
+     =========================================== */
 
-  const porcentaje = document.getElementById("porcentaje");
-  const barraInterior = document.getElementById("barraInterior");
-  const textoCobertura = document.getElementById("textoCobertura");
-  const detalleCobertura = document.getElementById("detalleCobertura");
+  const vistaPrincipal =
+    document.getElementById("vistaPrincipal");
+
+  const vistaCalendario =
+    document.getElementById("vistaCalendario");
+
+  const dias =
+    document.getElementById("dias");
+
+  const listaTurnos =
+    document.getElementById("listaTurnos");
+
+  const formulario =
+    document.getElementById("formulario");
+
+  const porcentaje =
+    document.getElementById("porcentaje");
+
+  const barraInterior =
+    document.getElementById("barraInterior");
+
+  const textoCobertura =
+    document.getElementById("textoCobertura");
+
+  const detalleCobertura =
+    document.getElementById("detalleCobertura");
 
   const fechaSeleccionadaTexto =
     document.getElementById("fechaSeleccionada");
@@ -456,10 +894,27 @@
   const estado =
     document.getElementById("estado");
 
+  const calendarHeader =
+    document.getElementById("calendarHeader");
+
+  const timeColumn =
+    document.getElementById("timeColumn");
+
+  const tituloSemana =
+    document.getElementById("tituloSemana");
+
+  const calendarScroll =
+    document.getElementById("calendarScroll");
+
+
+  /* ===========================================
+     FECHAS
+     =========================================== */
 
   function fechaLocal(fecha) {
 
-    const y = fecha.getFullYear();
+    const y =
+      fecha.getFullYear();
 
     const m =
       String(fecha.getMonth() + 1)
@@ -513,12 +968,62 @@
   }
 
 
+  function obtenerLunes(fecha) {
+
+    const copia =
+      new Date(
+        fecha.getFullYear(),
+        fecha.getMonth(),
+        fecha.getDate()
+      );
+
+    let dia =
+      copia.getDay();
+
+    if (dia === 0) {
+      dia = 7;
+    }
+
+    copia.setDate(
+      copia.getDate() - dia + 1
+    );
+
+    return copia;
+  }
+
+
+  /* ===========================================
+     HORAS
+     =========================================== */
+
   function minutos(hora) {
 
     const [h, m] =
       hora.split(":").map(Number);
 
     return h * 60 + m;
+  }
+
+
+  function minutosAHora24(total) {
+
+    if (total >= 1440) {
+      return "00:00";
+    }
+
+    const h =
+      Math.floor(total / 60);
+
+    const m =
+      total % 60;
+
+    return (
+      String(h).padStart(2, "0")
+      +
+      ":"
+      +
+      String(m).padStart(2, "0")
+    );
   }
 
 
@@ -562,6 +1067,10 @@
   }
 
 
+  /* ===========================================
+     DÍAS PRINCIPALES
+     =========================================== */
+
   function renderDias() {
 
     dias.innerHTML = "";
@@ -601,12 +1110,12 @@
         i === 0
         ? "HOY"
         : fecha
-            .toLocaleDateString(
-              "es-CR",
-              { weekday: "short" }
-            )
-            .replace(".", "")
-            .toUpperCase();
+          .toLocaleDateString(
+            "es-CR",
+            { weekday: "short" }
+          )
+          .replace(".", "")
+          .toUpperCase();
 
 
       const fechaCorta =
@@ -639,6 +1148,10 @@
   }
 
 
+  /* ===========================================
+     SEGMENTOS DE COBERTURA
+     =========================================== */
+
   function segmentosDelDia(fecha) {
 
     const resultado = [];
@@ -664,7 +1177,9 @@
 
         resultado.push({
           inicio,
-          fin
+          fin,
+          id,
+          nombre: turno.nombre
         });
       }
 
@@ -676,7 +1191,9 @@
 
         resultado.push({
           inicio,
-          fin: 1440
+          fin: 1440,
+          id,
+          nombre: turno.nombre
         });
       }
 
@@ -688,7 +1205,10 @@
 
         resultado.push({
           inicio: 0,
-          fin
+          fin,
+          id,
+          nombre: turno.nombre,
+          continuacion: true
         });
       }
 
@@ -801,23 +1321,18 @@
   }
 
 
-  function formatoDuracion(minutosTotales) {
+  function formatoDuracion(total) {
 
     const horas =
-      Math.floor(
-        minutosTotales / 60
-      );
+      Math.floor(total / 60);
 
-    const minutosRestantes =
-      minutosTotales % 60;
+    const mins =
+      total % 60;
 
 
-    if (
-      horas &&
-      minutosRestantes
-    ) {
+    if (horas && mins) {
 
-      return `${horas} h ${minutosRestantes} min`;
+      return `${horas} h ${mins} min`;
     }
 
 
@@ -829,9 +1344,13 @@
     }
 
 
-    return `${minutosRestantes} min`;
+    return `${mins} min`;
   }
 
+
+  /* ===========================================
+     COBERTURA PRINCIPAL
+     =========================================== */
 
   function renderCobertura() {
 
@@ -920,6 +1439,10 @@
     `;
   }
 
+
+  /* ===========================================
+     TURNOS DEL DÍA
+     =========================================== */
 
   function turnosDelDia(fecha) {
 
@@ -1062,7 +1585,8 @@
 
               <button
                 class="eliminar"
-                onclick="eliminarTurno('${turno.id}')">
+                onclick="eliminarTurno('${turno.id}')"
+              >
                 ✕
               </button>
 
@@ -1074,6 +1598,10 @@
       .join("");
   }
 
+
+  /* ===========================================
+     GUARDAR TURNO
+     =========================================== */
 
   formulario.addEventListener(
     "submit",
@@ -1175,6 +1703,10 @@
   );
 
 
+  /* ===========================================
+     ELIMINAR
+     =========================================== */
+
   window.eliminarTurno =
     async function(id) {
 
@@ -1215,6 +1747,523 @@
     };
 
 
+  /* ===========================================
+     CALENDARIO SEMANAL
+     =========================================== */
+
+  function renderTimeColumn() {
+
+    timeColumn.innerHTML = "";
+
+
+    for (
+      let hora = 0;
+      hora <= 24;
+      hora++
+    ) {
+
+      const label =
+        document.createElement("div");
+
+      label.className =
+        "time-label";
+
+      label.style.top =
+        `${hora * 60}px`;
+
+
+      if (hora === 24) {
+
+        label.textContent =
+          "00:00";
+      }
+
+      else {
+
+        label.textContent =
+          String(hora)
+          .padStart(2, "0")
+          + ":00";
+      }
+
+
+      timeColumn.appendChild(label);
+    }
+  }
+
+
+  function renderCalendarHeader() {
+
+    calendarHeader.innerHTML = `
+      <div class="corner"></div>
+    `;
+
+
+    const hoy =
+      fechaLocal(new Date());
+
+
+    for (
+      let i = 0;
+      i < 7;
+      i++
+    ) {
+
+      const fecha =
+        new Date(inicioSemanaCalendario);
+
+      fecha.setDate(
+        inicioSemanaCalendario.getDate() + i
+      );
+
+
+      const texto =
+        fechaLocal(fecha);
+
+
+      const div =
+        document.createElement("div");
+
+
+      div.className =
+        "day-head" +
+        (
+          texto === hoy
+          ? " hoy"
+          : ""
+        );
+
+
+      div.innerHTML = `
+        <div class="letra">
+          ${
+            fecha
+            .toLocaleDateString(
+              "es-CR",
+              { weekday: "short" }
+            )
+            .replace(".", "")
+          }
+        </div>
+
+        <div class="numero">
+          ${fecha.getDate()}
+        </div>
+      `;
+
+
+      calendarHeader.appendChild(div);
+    }
+
+
+    const fin =
+      new Date(inicioSemanaCalendario);
+
+    fin.setDate(
+      inicioSemanaCalendario.getDate() + 6
+    );
+
+
+    tituloSemana.textContent =
+      `${inicioSemanaCalendario.toLocaleDateString(
+        "es-CR",
+        {
+          day: "numeric",
+          month: "short"
+        }
+      )} – ${
+        fin.toLocaleDateString(
+          "es-CR",
+          {
+            day: "numeric",
+            month: "short"
+          }
+        )
+      }`;
+  }
+
+
+  function renderCalendarEvents() {
+
+    const columnas =
+      document.querySelectorAll(
+        ".day-column"
+      );
+
+
+    columnas.forEach(
+      columna => {
+
+        columna.innerHTML = "";
+
+        const indice =
+          Number(
+            columna.dataset.day
+          );
+
+
+        const fecha =
+          new Date(
+            inicioSemanaCalendario
+          );
+
+        fecha.setDate(
+          inicioSemanaCalendario.getDate()
+          + indice
+        );
+
+
+        const textoFecha =
+          fechaLocal(fecha);
+
+
+        const segmentos =
+          segmentosDelDia(textoFecha);
+
+
+        segmentos.forEach(segmento => {
+
+          const bloque =
+            document.createElement("div");
+
+
+          bloque.className =
+            "event-block";
+
+
+          bloque.style.top =
+            `${segmento.inicio}px`;
+
+
+          bloque.style.height =
+            `${Math.max(
+              segmento.fin -
+              segmento.inicio,
+              18
+            )}px`;
+
+
+          bloque.innerHTML = `
+            <strong>
+              ${limpiarTexto(segmento.nombre)}
+            </strong>
+
+            <div class="evento-hora">
+              ${horaBonita(segmento.inicio)}
+              –
+              ${horaBonita(segmento.fin)}
+            </div>
+          `;
+
+
+          bloque.addEventListener(
+            "click",
+            evento => {
+
+              evento.stopPropagation();
+
+              mostrarToast(
+                `Ese horario ya lo cubre ${segmento.nombre}`
+              );
+            }
+          );
+
+
+          columna.appendChild(bloque);
+        });
+
+
+        columna.onclick =
+          evento => {
+
+            manejarClickCalendario(
+              evento,
+              columna,
+              textoFecha
+            );
+          };
+
+      }
+    );
+  }
+
+
+  function manejarClickCalendario(
+    evento,
+    columna,
+    textoFecha
+  ) {
+
+    const rect =
+      columna.getBoundingClientRect();
+
+
+    const y =
+      evento.clientY - rect.top;
+
+
+    let minutoSeleccionado =
+      Math.round(
+        y / 30
+      ) * 30;
+
+
+    minutoSeleccionado =
+      Math.max(
+        0,
+        Math.min(
+          1439,
+          minutoSeleccionado
+        )
+      );
+
+
+    const segmentos =
+      unirSegmentos(
+        segmentosDelDia(
+          textoFecha
+        )
+      );
+
+
+    const huecos =
+      calcularHuecos(segmentos);
+
+
+    const hueco =
+      huecos.find(
+        h =>
+          minutoSeleccionado >= h.inicio
+          &&
+          minutoSeleccionado < h.fin
+      );
+
+
+    if (!hueco) {
+
+      mostrarToast(
+        "Ese horario ya está ocupado"
+      );
+
+      return;
+    }
+
+
+    fechaSeleccionada =
+      textoFecha;
+
+
+    let inicioHueco =
+      hueco.inicio;
+
+    let finHueco =
+      hueco.fin;
+
+
+    /*
+      Si el hueco es todo el día,
+      seleccionamos desde la hora tocada
+      hasta 4 horas después como ayuda.
+    */
+
+    if (
+      inicioHueco === 0 &&
+      finHueco === 1440
+    ) {
+
+      inicioHueco =
+        Math.floor(
+          minutoSeleccionado / 30
+        ) * 30;
+
+      finHueco =
+        Math.min(
+          inicioHueco + 240,
+          1440
+        );
+    }
+
+
+    /*
+      Si toca dentro de un hueco enorme,
+      usamos el hueco completo.
+    */
+
+    document
+      .getElementById("inicio")
+      .value =
+        minutosAHora24(
+          inicioHueco
+        );
+
+
+    document
+      .getElementById("fin")
+      .value =
+        minutosAHora24(
+          finHueco
+        );
+
+
+    mostrarVistaPrincipal();
+
+
+    renderTodo();
+
+
+    setTimeout(
+      () => {
+
+        document
+          .getElementById("seccionMeApunto")
+          .scrollIntoView(
+            {
+              behavior: "smooth",
+              block: "start"
+            }
+          );
+
+      },
+      100
+    );
+
+
+    mostrarToast(
+      `📅 ${horaBonita(inicioHueco)} → ${horaBonita(finHueco)} seleccionado`
+    );
+  }
+
+
+  function renderCalendario() {
+
+    renderCalendarHeader();
+
+    renderTimeColumn();
+
+    renderCalendarEvents();
+  }
+
+
+  /* ===========================================
+     CAMBIO ENTRE PANTALLAS
+     =========================================== */
+
+  function mostrarVistaCalendario() {
+
+    vistaPrincipal.style.display =
+      "none";
+
+    vistaCalendario.style.display =
+      "block";
+
+
+    inicioSemanaCalendario =
+      obtenerLunes(
+        fechaDesdeTexto(
+          fechaSeleccionada
+        )
+      );
+
+
+    renderCalendario();
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+
+    /*
+      Al abrir, baja aproximadamente
+      hasta las 6 a. m. para no empezar
+      necesariamente en medianoche.
+    */
+
+    setTimeout(
+      () => {
+
+        window.scrollTo(
+          0,
+          350
+        );
+
+      },
+      50
+    );
+  }
+
+
+  function mostrarVistaPrincipal() {
+
+    vistaCalendario.style.display =
+      "none";
+
+    vistaPrincipal.style.display =
+      "block";
+
+    window.scrollTo(
+      0,
+      0
+    );
+  }
+
+
+  document
+    .getElementById("abrirCalendario")
+    .onclick =
+      mostrarVistaCalendario;
+
+
+  document
+    .getElementById("volverPrincipal")
+    .onclick =
+      mostrarVistaPrincipal;
+
+
+  document
+    .getElementById("semanaAnterior")
+    .onclick = () => {
+
+      inicioSemanaCalendario.setDate(
+        inicioSemanaCalendario.getDate()
+        - 7
+      );
+
+      renderCalendario();
+    };
+
+
+  document
+    .getElementById("semanaSiguiente")
+    .onclick = () => {
+
+      inicioSemanaCalendario.setDate(
+        inicioSemanaCalendario.getDate()
+        + 7
+      );
+
+      renderCalendario();
+    };
+
+
+  document
+    .getElementById("semanaActual")
+    .onclick = () => {
+
+      inicioSemanaCalendario =
+        obtenerLunes(
+          new Date()
+        );
+
+      renderCalendario();
+    };
+
+
+  /* ===========================================
+     TOAST
+     =========================================== */
+
   function mostrarToast(texto) {
 
     const toast =
@@ -1232,21 +2281,42 @@
 
     setTimeout(
       () => {
+
         toast.style.display =
           "none";
+
       },
-      2200
+      2600
     );
   }
 
 
+  /* ===========================================
+     RENDER GENERAL
+     =========================================== */
+
   function renderTodo() {
 
     renderDias();
+
     renderCobertura();
+
     renderTurnos();
+
+
+    if (
+      vistaCalendario.style.display
+      === "block"
+    ) {
+
+      renderCalendario();
+    }
   }
 
+
+  /* ===========================================
+     FIREBASE EN TIEMPO REAL
+     =========================================== */
 
   onValue(
     turnosRef,
@@ -1274,6 +2344,10 @@
   );
 
 
+  /* ===========================================
+     RECORDAR NOMBRE
+     =========================================== */
+
   const nombreGuardado =
     localStorage.getItem(
       "nombreMamiLinda"
@@ -1288,6 +2362,10 @@
         nombreGuardado;
   }
 
+
+  /* ===========================================
+     HORARIO INICIAL
+     =========================================== */
 
   document
     .getElementById("inicio")
